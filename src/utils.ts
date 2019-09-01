@@ -7,28 +7,25 @@ export function isDef (n: any) {
   return typeof n !== void 0
 }
 
-function compare (a: N, b: N, fn: (...values: number[]) => number): N {
-  const an = isNum(a)
-  const bn = isNum(b)
-  if (an && bn) {
-    return fn(a, b)
+function compare (fn: (...values: number[]) => number, ...values: any[]): N {
+  const nums = values.filter((n) => isNum(n))
+  if (nums.length) {
+    return fn.apply(null, nums)
   }
-
-  if (!an && bn) {
-    return b
-  }
-
-  if (an && !bn) {
-    return a
-  }
-
   return void 0
 }
 
-export function getMax (a: N, b: N): N {
-  return compare(a, b, Math.max)
+export function getMax (...values: N[]): N {
+  return compare(Math.max, ...values)
 }
 
-export function getMin (a: N, b: N): N {
-  return compare(a, b, Math.min)
+export function getMin (...values: N[]): N {
+  return compare(Math.min, ...values)
+}
+
+export function getAbs (value: any) {
+  if (isNum(value)) {
+    return Math.abs(value)
+  }
+  return void 0
 }

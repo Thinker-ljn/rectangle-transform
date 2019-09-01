@@ -1,6 +1,6 @@
-import { N, getMax, getMin, isDef, isNum } from './utils'
+import { N, getMax, getMin } from './utils'
 
-interface Size {
+export interface Size {
   width: number
   height: number
 }
@@ -15,13 +15,13 @@ export interface Bbox extends Rect {
   bottom: number
 }
 
-export interface Scope {
-  max?: N
-  min?: N
+export interface Ranges {
+  start?: N
+  end?: N
   len?: N
 }
 export type Range = [N, N]
-export type Ranges = [Range, Range]
+export type Scope = [Range, Range]
 export type CtrlName = 'left' | 'top' | 'right' | 'bottom' | 'x' | 'y'
 export type SingleCtrl = 't' | 'l' | 'b' | 'r' | 'x' | 'y'
 type MixinCtrl = 'lt' | 'lb' | 'rb' | 'rt' | 'xy'
@@ -60,7 +60,7 @@ export default function genCtrlScope (
   target: Rect,
   maximum: Partial<Bbox>,
   minimum: Partial<Bbox>,
-): Ranges {
+): Scope {
   let [c1, c2] = ctrl.split('')
   if (ctrl.length === 1 && ['t', 'b', 'y'].includes(c1)) {
     [c2, c1] = ctrl.split('')
@@ -77,33 +77,33 @@ export function genBbox (target: Rect) {
   return { x: left, y: top, left, top, right, bottom, width, height }
 }
 
-function getVertical (bbox: Partial<Bbox>): Scope {
-  const {top: min, height: len, bottom: max} = bbox
-  return {min, len, max}
+function getVertical (bbox: Partial<Bbox>): Ranges {
+  const {top: start, height: len, bottom: end} = bbox
+  return {start, len, end}
 }
 
-function getHorizontal (bbox: Partial<Bbox>): Scope {
-  const {left: min, width: len, right: max} = bbox
-  return {min, len, max}
+function getHorizontal (bbox: Partial<Bbox>): Ranges {
+  const {left: start, width: len, right: end} = bbox
+  return {start, len, end}
 }
 
-function genLT (rb: number, max: Scope, min: Scope): Range {
+function genLT (rb: number, outer: Ranges, inner: Ranges): Range {
   return [
-    getMax(rb - max.len, max.min),
-    getMin(rb - (min.len || 0), min.min),
+    getMax(rb - outer.len, outer.start),
+    getMin(rb - (inner.len || 0), inner.start),
   ]
 }
 
-function genRB (lt: number, max: Scope, min: Scope): Range {
+function genRB (lt: number, outer: Ranges, inner: Ranges): Range {
   return [
-    getMax(lt + (min.len || 0), min.max),
-    getMin(lt + max.len, max.max),
+    getMax(lt + (inner.len || 0), inner.end),
+    getMin(lt + outer.len, outer.end),
   ]
 }
 
-function genXY (wh: number, max: Scope, min: Scope): Range {
+function genXY (wh: number, outer: Ranges, inner: Ranges): Range {
   return [
-    getMax(max.min, min.max - wh),
-    getMin(min.min, max.max - wh),
+    getMax(outer.start, inner.end - wh),
+    getMin(inner.start, outer.end - wh),
   ]
 }
