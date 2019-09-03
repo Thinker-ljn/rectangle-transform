@@ -1,5 +1,6 @@
-import { Ctrl, Rect, ScopeValue, Scope, Bbox } from './scpoed'
+import { Ctrl, Rect, ScopeValue, Scope, Bbox, RangeTuple } from './gen-scope'
 import { Pointer } from '.'
+import { isNum } from './utils';
 
 export function getMovement (currEvent: MouseEvent, startEvent: MouseEvent) {
   return {
@@ -29,12 +30,19 @@ export function genInitPositon (ctrl: Ctrl, target: Rect): Partial<Pointer> {
 }
 
 export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope: Scope) {
-  function inScope (offsetValue: number, initValue: number | ScopeValue) {
-    if (typeof initValue === 'number') {
+  function inScope (offsetValue: number, initValue: number, range: RangeTuple) {
+    if (!range) {
       return initValue + offsetValue
     } else {
-      const [value, min, max] = initValue
-      return Math.min(max, Math.max(min, offsetValue + value))
+      const [min, max] = range
+      let value = offsetValue + initValue
+      if (min) {
+        value = Math.max(min, value)
+      }
+      if (max) {
+        value = Math.min(max, value)
+      }
+      return value
     }
   }
   const {x: ox, y: oy} = offset
@@ -42,16 +50,16 @@ export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope:
   const [sx, sy] = scope
 
   const result: Partial<Pointer> = {}
-  if (sx && typeof ix === 'number') {
-    result.x = inScope(ox, [ix, sx[0], sx[1]])
+  if (sx && isNum(ix)) {
+    result.x = inScope(ox, ix, sx)
   }
-  if (sy && typeof iy === 'number') {
-    result.y = inScope(oy, [iy, sy[0], sy[1]])
+  if (sy && isNum(iy)) {
+    result.y = inScope(oy, iy, sy)
   }
   return result
 }
 
-export function genNewTarget (position: Partial<Pointer>, target: Bbox, ctrl: Ctrl): Rect {
+export function genNewTarget (ctrl: Ctrl, position: Partial<Pointer>, target: Bbox): Rect {
   const {x, y} = {x: 0, y: 0, ...position}
   const {left, top, width, height, right, bottom} = target
   switch (ctrl) {
@@ -67,4 +75,11 @@ export function genNewTarget (position: Partial<Pointer>, target: Bbox, ctrl: Ct
     case 'xy': return {left: x, top: y, width, height}
     case 'y':  return {left, top: y, width, height}
   }
+}
+
+export function genBbox (target: Rect) {
+  const {left, top, width, height} = target
+  const right = left + width
+  const bottom = top + height
+  return { x: left, y: top, left, top, right, bottom, width, height }
 }

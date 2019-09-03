@@ -1,4 +1,4 @@
-import { N, getMax, getMin, isNum, getAbs } from './utils'
+import { N, getMax, getMin, isNum, getAbs, isDef } from './utils'
 
 export interface Size {
   width: number
@@ -25,36 +25,28 @@ export interface AxisRange {
   h: SingleRange
   v: SingleRange
 }
-
-export type Scope = [BaseRange, BaseRange]
+export type RangeTuple = [N, N] | undefined
+export type Scope = [RangeTuple, RangeTuple]
 type BorderCtrl = 't' | 'l' | 'b' | 'r'
-export type SingleCtrl = BorderCtrl | 'x' | 'y'
+type MoveCtrl = 'x' | 'y'
+export type SingleCtrl = BorderCtrl | MoveCtrl
 type MixinCtrl = 'lt' | 'lb' | 'rb' | 'rt' | 'xy'
 export type Ctrl = MixinCtrl | SingleCtrl
 export type ScopeValue = [number, number, number] // init-value min max
-
-// export const tuple = <T extends string[]>(...args: T) => args
-// export const CtrlNames = tuple('left', 'top', 'right', 'bottom', 'x', 'y')
-// export type CtrlName = (typeof CtrlNames)[number]
-
-// function getFullName (control: SingleCtrl): CtrlName {
-//   return CtrlNames.find((str) => str.startsWith(control))
-// }
-
 type AxisKey = 'h' | 'v'
-function getAxisKey (control: SingleCtrl): AxisKey {
-  return ['l', 'r', 'x'].includes(control) ? 'h' : 'v'
-}
 type RangeKey = 'start' | 'end'
 type Factor = -1 | 1
-function getRelativeKey (control: BorderCtrl): [RangeKey, RangeKey, Factor] {
-  return ['l', 't'].includes(control) ? ['start', 'end', -1] : ['end', 'start', 1]
-}
-function getCrossKeys (control: BorderCtrl, another?: BorderCtrl): [AxisKey, BorderCtrl, BorderCtrl | undefined] {
-  if (another) {
-    return ['l', 'r'].includes(control) ? ['v', another, void 0] : ['h', another, void 0]
-  }
-  return ['l', 'r'].includes(control) ? ['v', 't', 'b'] : ['h', 'l', 'r']
+interface AxisOption {
+  outerAxis: SingleRange
+  innerAxis: SingleRange
+  targetAxis: SingleRange
+  crossCtrlKeys: [BorderCtrl, BorderCtrl]
+  rangeKey: RangeKey
+  oppositeRangeKey: RangeKey
+  factor: Factor
+  axisKey: AxisKey
+  crossAxisKey: AxisKey
+  isStartSide: boolean
 }
 
 export default function genCtrlScope (
@@ -62,9 +54,9 @@ export default function genCtrlScope (
   target: Bbox,
   maximum: Partial<Bbox>,
   minimum: Partial<Bbox>,
-  reverse: boolean = false,
+  // reverse: boolean = false,
   fixedRate?: number,
-) {
+): Scope {
   function genRange (bbox: Partial<Bbox>): AxisRange {
     const {
       left, width, right,
@@ -79,73 +71,107 @@ export default function genCtrlScope (
   const innerRange = genRange(minimum)
   const targetRange = genRange(target)
 
-  function genBorderScope (control: BorderCtrl) {
-    const axisKey = getAxisKey(control) // h | v
-    const outer = outerRange[axisKey]
-    const inner = innerRange[axisKey]
-    const {innerLen, outerLen} = getLen(control)
-    const [rangeKey, relativeKey, factor] = getRelativeKey(control)
-    const targetRelativeBorder = targetRange[axisKey][relativeKey]
-    // outer
-    const outerBorder = outer[rangeKey]
-    const outerLenBorder = targetRelativeBorder + outerLen * factor
-    const getFinalOuter = rangeKey === 'start' ? getMax : getMin
-    const finalMinBorder = getFinalOuter(outerBorder, outerLenBorder)
-    // inner
-    const innerBorder = inner[rangeKey]
-    const innerLenBorder = targetRelativeBorder + (innerLen || 0 /** reverse = false */) * factor
-    const getFinalInner = rangeKey === 'start' ? getMin : getMax
-    const finalMaxBorder = getFinalInner(innerBorder, innerLenBorder)
-    // todo: fixedBorder
-
-    return [finalMinBorder, finalMaxBorder]
-  }
-
-  function getLen (control: BorderCtrl) {
-    const axisKey = getAxisKey(control) // h | v
-    const outer = outerRange[axisKey]
-    const inner = innerRange[axisKey]
-    let outerLen = outer.len
-    let innerLen = inner.len
-    if (fixedRate) {
-      const [smallLen, bigLen] = genFixedLen(control, fixedRate)
-      outerLen = getMax(outerLen, bigLen)
-      innerLen = getMax(smallLen, bigLen)
+  function genBelongsAxis (axisKey: AxisKey, control: SingleCtrl): AxisOption {
+    const isStartSide = ['l', 't'].includes(control)
+    return {
+      outerAxis: outerRange[axisKey],
+      innerAxis: innerRange[axisKey],
+      targetAxis: targetRange[axisKey],
+      crossCtrlKeys: axisKey === 'h' ? ['t', 'b'] : ['l', 'r'],
+      factor: isStartSide ? -1 : 1,
+      crossAxisKey: axisKey === 'h' ? 'v' : 'h',
+      rangeKey: isStartSide ? 'start' : 'end',
+      oppositeRangeKey: isStartSide ? 'end' : 'start',
+      axisKey,
+      isStartSide,
     }
-    return {innerLen, outerLen}
   }
 
-  function genFixedLen (control: BorderCtrl, rate: number) {
-    const [crossAxisKey, crossStartCtrl, crossEndCtrl] = getCrossKeys(control)
-    const startScope = genBorderScope(crossStartCtrl)
-    const endScope = genBorderScope(crossEndCtrl)
+  function getMainAxis (control: SingleCtrl) {
+    const axisKey = ['l', 'r', 'x'].includes(control) ? 'h' : 'v'
+    return genBelongsAxis(axisKey, control)
+  }
 
-    const crossAxis = targetRange[crossAxisKey]
-    const smallOuter = getMin(
-      getAbs(startScope[0] - crossAxis.start),
-      getAbs(endScope[1] - crossAxis.end),
-    )
-    const bigInner = getMax(
-      getAbs(startScope[1] - crossAxis.start),
-      getAbs(endScope[0] - crossAxis.end),
-    )
-    const finalRate = crossAxisKey === 'h' ? 1 / rate : rate
+  function getCrossAxis (control: SingleCtrl) {
+    const axisKey = ['l', 'r', 'x'].includes(control) ? 'v' : 'h'
+    return genBelongsAxis(axisKey, control)
+  }
+
+  function getBorderScope (control: BorderCtrl, fixedLen?: RangeTuple): RangeTuple {
+    const {
+      outerAxis, innerAxis, targetAxis,
+      factor, rangeKey, oppositeRangeKey,
+      isStartSide,
+    } = getMainAxis(control)
+    const targetRelativeBorder = targetAxis[oppositeRangeKey]
+    let outerLen = outerAxis.len
+    let innerLen = innerAxis.len
+    if (fixedLen) {
+      const [minLen, maxLen] = fixedLen
+      outerLen = getMin(outerLen, maxLen)
+      innerLen = getMax(innerLen, minLen)
+    }
+    // outer
+    const outerBorder = outerAxis[rangeKey]
+    const outerLenBorder = targetRelativeBorder + outerLen * factor
+    const getFinalOuter = isStartSide ? getMax : getMin
+    const finalOuterBorder = getFinalOuter(outerBorder, outerLenBorder)
+    // inner
+    const innerBorder = innerAxis[rangeKey]
+    const innerLenBorder = targetRelativeBorder + (innerLen || 0 /** reverse = false */) * factor
+    const getFinalInner = isStartSide ? getMin : getMax
+    const finalInnerBorder = getFinalInner(innerBorder, innerLenBorder)
+
+    return isStartSide ? [finalOuterBorder, finalInnerBorder] : [finalInnerBorder, finalOuterBorder]
+  }
+
+  function getFixedLen (control: BorderCtrl, another?: BorderCtrl): RangeTuple {
+    if (!fixedRate) {
+      return void 0
+    }
+    const {crossCtrlKeys, crossAxisKey} = getCrossAxis(control)
+    const finalRate = crossAxisKey === 'h' ? 1 / fixedRate : fixedRate
     let bigLen = void 0
     let smallLen = void 0
-    if (isNum(smallOuter)) {
-      const bigCrossLen = crossAxis.len + smallOuter * 2
-      bigLen = bigCrossLen * finalRate
-    }
+    if (!isDef(another)) {
+      const [crossStartCtrl, crossEndCtrl] = crossCtrlKeys
+      const startScope = getBorderScope(crossStartCtrl)
+      const endScope = getBorderScope(crossEndCtrl)
 
-    if (isNum(bigInner)) {
-      const smallCrossLen = crossAxis.len + bigInner * 2
-      smallLen = smallCrossLen * finalRate
+      const crossAxis = targetRange[crossAxisKey]
+      const smallOuter = getMin(
+        getAbs(startScope[0] - crossAxis.start),
+        getAbs(endScope[1] - crossAxis.end),
+      )
+      const bigInner = getMax(
+        getAbs(startScope[1] - crossAxis.start),
+        getAbs(endScope[0] - crossAxis.end),
+      )
+      if (isNum(smallOuter)) {
+        const bigCrossLen = crossAxis.len + smallOuter * 2
+        bigLen = bigCrossLen * finalRate
+      }
+
+      if (isNum(bigInner)) {
+        const smallCrossLen = crossAxis.len + bigInner * 2
+        smallLen = smallCrossLen * finalRate
+      }
+    } else {
+      const {oppositeRangeKey, targetAxis} = getMainAxis(another)
+      const [anotherMinScope, anotherMaxScope] = getBorderScope(another)
+      smallLen = getAbs(anotherMinScope - targetAxis[oppositeRangeKey])
+      bigLen = getAbs(anotherMaxScope - targetAxis[oppositeRangeKey])
     }
     return [smallLen, bigLen]
   }
 
-  function genMoveScope (control: 'x' | 'y') {
-    const key = getAxisKey(control)
+  function genSingleBorderScope (control: BorderCtrl, another?: BorderCtrl): RangeTuple {
+    const fixedBorderLen = getFixedLen(control, another)
+    const border = getBorderScope(control, fixedBorderLen)
+    return border
+  }
+
+  function genMoveScope (key: AxisKey): RangeTuple {
     const outer = outerRange[key]
     const inner = innerRange[key]
     const {len: targetlen} = targetRange[key]
@@ -154,15 +180,25 @@ export default function genCtrlScope (
       getMin(inner.start, outer.end - targetlen),
     ]
   }
-
+  let scopeH: RangeTuple = void 0
+  let scopeV: RangeTuple = void 0
   if (ctrl === 'xy') {
-    return
+    scopeH = genMoveScope('h')
+    scopeV = genMoveScope('v')
+  } else if (ctrl === 'x') {
+    scopeH = genMoveScope('h')
+  } else if (ctrl === 'y') {
+    scopeV = genMoveScope('v')
+  } else if (/^[l|r]$/.test(ctrl)) {
+    scopeH = genSingleBorderScope(ctrl as BorderCtrl)
+  } else if (/^[t|b]$/.test(ctrl)) {
+    scopeV = genSingleBorderScope(ctrl as BorderCtrl)
+  } else {
+    const c1 = ctrl[0] as BorderCtrl
+    const c2 = ctrl[1] as BorderCtrl
+    scopeH = genSingleBorderScope(c1, c2)
+    scopeV = genSingleBorderScope(c2, c1)
   }
-
-  if (ctrl.length === 1) {
-    return
-  }
-
-  const c1 = ctrl[0] as BorderCtrl
-  const c2 = ctrl[1] as BorderCtrl
+  console.log(ctrl, scopeH, scopeV)
+  return [scopeH, scopeV]
 }

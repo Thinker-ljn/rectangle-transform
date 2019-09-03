@@ -1,4 +1,4 @@
-export type N = number | undefined | null
+export type N = undefined | null | number
 export function isNum (n: N) {
   return typeof n === 'number' && !isNaN(n)
 }
