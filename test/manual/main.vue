@@ -87,6 +87,7 @@ export default {
         target: this.tar,
         maximum: this.max,
         minimum: this.min,
+        // rate: 2,
       },
       (rect) => {
         this.tar = rect.target

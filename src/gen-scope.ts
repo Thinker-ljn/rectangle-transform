@@ -199,6 +199,5 @@ export default function genCtrlScope (
     scopeH = genSingleBorderScope(c1, c2)
     scopeV = genSingleBorderScope(c2, c1)
   }
-  console.log(ctrl, scopeH, scopeV)
   return [scopeH, scopeV]
 }
