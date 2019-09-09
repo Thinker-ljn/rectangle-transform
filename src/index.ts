@@ -1,5 +1,6 @@
 import genCtrlScope, { Ctrl, Rect, Bbox } from './gen-scope'
-import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget } from './calculation';
+import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fixed } from './calculation'
+import { isDef } from './utils';
 
 type UserDefinedHandler = ({target: Rect, ev: MouseEvent}) => void | Rect
 export interface Pointer {
@@ -21,17 +22,21 @@ export default function listener (
   userMove: UserDefinedHandler | Pointer, // move callback or user def movement
   userFinished?: UserDefinedHandler,
 ) {
-  const {control, target, maximum, minimum} = options
+  const {control, target, maximum, minimum, rate} = options
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
-  const scopes = genCtrlScope(control, bbox, maximum, minimum)
+  const scopes = genCtrlScope(control, bbox, maximum, minimum, rate)
   function getNewTarget (ev: MouseEvent | Pointer) {
     let movement = ev
     if (ev instanceof MouseEvent) {
       movement = getMovement(ev, startEvent)
     }
     const newPosition = calcNewPosition(movement, position, scopes)
-    return genNewTarget(control, newPosition, bbox)
+    let newTarget = genNewTarget(control, newPosition, bbox)
+    if (isDef(rate)) {
+      newTarget = fixed(control, newTarget, rate)
+    }
+    return newTarget
   }
 
   function whenMove (ev: MouseEvent) {

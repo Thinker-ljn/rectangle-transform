@@ -58,6 +58,51 @@ export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope:
   }
   return result
 }
+// rate = w / h
+export function fixed (ctrl: Ctrl, target: Rect, rate: number) {
+  let {left, top, width, height} = target
+  switch (ctrl) {
+    case 'l':
+      const h = width / rate
+      top -= (h - height) / 2
+      height = h
+      break
+    case 'lt':
+      const r = width / height
+      if (r > rate) {
+        const h = width / rate
+        top -= h - height
+        height = h
+      } else {
+        const w = height * rate
+        left -= w - width
+        width = w
+      }
+      break
+    case 't':
+      const w = height * rate
+      left -= (w - width) / 2
+      width = w
+      break
+    case 'rt':
+      break
+    case 'r':
+      break
+    case 'rb':
+      break
+    case 'b':
+      break
+    case 'lb':
+      break
+    case 'x':
+      break
+    case 'xy':
+      break
+    case 'y':
+        break
+  }
+  return {left, top, width, height}
+}
 
 export function genNewTarget (ctrl: Ctrl, position: Partial<Pointer>, target: Bbox): Rect {
   const {x, y} = {x: 0, y: 0, ...position}
