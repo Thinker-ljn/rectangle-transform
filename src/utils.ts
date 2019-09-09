@@ -4,7 +4,7 @@ export function isNum (n: N) {
 }
 
 export function isDef (n: any) {
-  return typeof n !== void 0
+  return  n !== void 0
 }
 
 function compare (fn: (...values: number[]) => number, ...values: any[]): N {
