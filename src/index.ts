@@ -1,6 +1,5 @@
 import genCtrlScope, { Ctrl, Rect, Bbox } from './gen-scope'
 import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fixed } from './calculation'
-import { isDef } from './utils';
 
 type UserDefinedHandler = ({target: Rect, ev: MouseEvent}) => void | Rect
 export interface Pointer {
@@ -33,7 +32,7 @@ export default function listener (
     }
     const newPosition = calcNewPosition(movement, position, scopes)
     let newTarget = genNewTarget(control, newPosition, bbox)
-    if (isDef(rate)) {
+    if (rate) {
       newTarget = fixed(control, newTarget, rate)
     }
     return newTarget

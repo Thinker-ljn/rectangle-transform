@@ -108,8 +108,12 @@ export default function genCtrlScope (
     let innerLen = innerAxis.len
     if (fixedLen) {
       const [minLen, maxLen] = fixedLen
-      outerLen = getMin(outerLen, maxLen)
-      innerLen = getMax(innerLen, minLen)
+      if (maxLen > outerLen && maxLen < innerLen) {
+        outerLen = getMin(outerLen, maxLen)
+      }
+      if (minLen > outerLen && minLen < innerLen) {
+        innerLen = getMax(innerLen, minLen)
+      }
     }
     // outer
     const outerBorder = outerAxis[rangeKey]
@@ -129,7 +133,7 @@ export default function genCtrlScope (
     if (!fixedRate) {
       return void 0
     }
-    const {crossCtrlKeys, crossAxisKey} = getCrossAxis(control)
+    const {crossCtrlKeys, crossAxisKey} = getMainAxis(control)
     const finalRate = crossAxisKey === 'h' ? 1 / fixedRate : fixedRate
     let bigLen = void 0
     let smallLen = void 0
