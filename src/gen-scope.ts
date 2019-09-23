@@ -163,8 +163,14 @@ export default function genCtrlScope (
     } else {
       const {oppositeRangeKey, targetAxis} = getMainAxis(another)
       const [anotherMinScope, anotherMaxScope] = getBorderScope(another)
-      smallLen = getAbs(anotherMinScope - targetAxis[oppositeRangeKey])
-      bigLen = getAbs(anotherMaxScope - targetAxis[oppositeRangeKey])
+      // smallLen = getAbs(anotherMinScope - targetAxis[oppositeRangeKey])
+      // bigLen = getAbs(anotherMaxScope - targetAxis[oppositeRangeKey])
+      if (isNum(anotherMinScope)) {
+        smallLen = anotherMinScope * finalRate
+      }
+      if (isNum(anotherMaxScope)) {
+        bigLen = anotherMaxScope * finalRate
+      }
     }
     return [smallLen, bigLen]
   }

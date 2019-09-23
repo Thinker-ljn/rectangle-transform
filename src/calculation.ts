@@ -60,48 +60,38 @@ export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope:
 }
 // rate = w / h
 export function fixed (ctrl: Ctrl, target: Rect, rate: number) {
-  let {left, top, width, height} = target
-  switch (ctrl) {
-    case 'l':
-      const h = width / rate
-      top -= (h - height) / 2
-      height = h
-      break
-    case 'lt':
-      const r = width / height
-      if (r > rate) {
-        const h = width / rate
-        top -= h - height
-        height = h
-      } else {
-        const w = height * rate
-        left -= w - width
-        width = w
-      }
-      break
-    case 't':
-      const w = height * rate
-      left -= (w - width) / 2
-      width = w
-      break
-    case 'rt':
-      break
-    case 'r':
-      break
-    case 'rb':
-      break
-    case 'b':
-      break
-    case 'lb':
-      break
-    case 'x':
-      break
-    case 'xy':
-      break
-    case 'y':
-        break
+  const {left, top, width, height} = target
+  const r = {...target}
+  function fixV (share = false) {
+    const fixedH = width / rate
+    r.height = fixedH
+    return top - (fixedH - height) / (share ? 2 : 1)
   }
-  return {left, top, width, height}
+  function fixH (share = false) {
+    const fixedW = height * rate
+    r.width = fixedW
+    return left - (fixedW - width) / (share ? 2 : 1)
+  }
+  function fixHV (h: 'left' | '', v: 'top' | '') {
+    const currRate = width / height
+    if (currRate < rate && h) {
+      r[h] = fixH()
+    }
+    if (currRate > rate && v) {
+      r[v] = fixV()
+    }
+  }
+  switch (ctrl) {
+    case 'l': r.top = fixV(true); break
+    case 'lt': fixHV('left', 'top'); break
+    case 't': r.left = fixH(true); break
+    case 'rt': fixHV('', 'top'); break
+    case 'r': r.top = fixV(true); break
+    case 'rb': fixHV('', ''); break
+    case 'b': r.left = fixH(true); break
+    case 'lb': fixHV('left', ''); break
+  }
+  return r
 }
 
 export function genNewTarget (ctrl: Ctrl, position: Partial<Pointer>, target: Bbox): Rect {
