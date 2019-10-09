@@ -108,10 +108,10 @@ export default function genCtrlScope (
     let innerLen = innerAxis.len
     if (fixedLen) {
       const [minLen, maxLen] = fixedLen
-      if (maxLen > outerLen && maxLen < innerLen) {
+      if (maxLen < outerLen && maxLen > innerLen) {
         outerLen = getMin(outerLen, maxLen)
       }
-      if (minLen > outerLen && minLen < innerLen) {
+      if (minLen < outerLen && minLen > innerLen) {
         innerLen = getMax(innerLen, minLen)
       }
     }
@@ -144,32 +144,42 @@ export default function genCtrlScope (
 
       const crossAxis = targetRange[crossAxisKey]
       const smallOuter = getMin(
-        getAbs(startScope[0] - crossAxis.start),
-        getAbs(endScope[1] - crossAxis.end),
+        getAbs(crossAxis.end - startScope[0]),
+        getAbs(endScope[1] - crossAxis.start),
       )
       const bigInner = getMax(
-        getAbs(startScope[1] - crossAxis.start),
-        getAbs(endScope[0] - crossAxis.end),
+        getAbs(crossAxis.end - startScope[1]),
+        getAbs(endScope[0] - crossAxis.start),
       )
       if (isNum(smallOuter)) {
-        const bigCrossLen = crossAxis.len + smallOuter * 2
-        bigLen = bigCrossLen * finalRate
+        bigLen = smallOuter * finalRate
       }
 
       if (isNum(bigInner)) {
-        const smallCrossLen = crossAxis.len + bigInner * 2
-        smallLen = smallCrossLen * finalRate
+        smallLen = bigInner * finalRate
       }
     } else {
-      const {oppositeRangeKey, targetAxis} = getMainAxis(another)
-      const [anotherMinScope, anotherMaxScope] = getBorderScope(another)
-      // smallLen = getAbs(anotherMinScope - targetAxis[oppositeRangeKey])
-      // bigLen = getAbs(anotherMaxScope - targetAxis[oppositeRangeKey])
+      const {oppositeRangeKey, targetAxis, isStartSide} = getMainAxis(another)
+      const crossAxis = targetAxis[oppositeRangeKey]
+      // smallLen = getAbs(anotherMinScope - crossAxis
+      // bigLen = getAbs(anotherMaxScope - crossAxis
+      const [another1, another2] = getBorderScope(another)
+      let anotherMinScope
+      let anotherMaxScope
+      if (isStartSide) {
+        anotherMinScope = another2
+        anotherMaxScope = another1
+      } else {
+        anotherMinScope = another1
+        anotherMaxScope = another2
+      }
       if (isNum(anotherMinScope)) {
-        smallLen = anotherMinScope * finalRate
+        smallLen = getAbs(anotherMinScope - crossAxis) * finalRate
+        // smallLen = getAbs(anotherMinScope * finalRate)
       }
       if (isNum(anotherMaxScope)) {
-        bigLen = anotherMaxScope * finalRate
+        bigLen = getAbs(anotherMaxScope - crossAxis) * finalRate
+        // bigLen = getAbs(anotherMaxScope * finalRate)
       }
     }
     return [smallLen, bigLen]
@@ -178,6 +188,7 @@ export default function genCtrlScope (
   function genSingleBorderScope (control: BorderCtrl, another?: BorderCtrl): RangeTuple {
     const fixedBorderLen = getFixedLen(control, another)
     const border = getBorderScope(control, fixedBorderLen)
+    // console.log(control, fixedBorderLen, border)
     return border
   }
 

@@ -59,7 +59,13 @@ export default {
       },
       borders: [],
       rects: [],
-      ctrls: ['l', 'lt', 't', 'rt', 'r', 'rb', 'b', 'lb']
+      ctrls: ['l', 'lt', 't', 'rt', 'r', 'rb', 'b', 'lb'],
+      f: {
+        rate: {
+          w: 1,
+          h: 1
+        }
+      }
     }
   },
   computed: {
@@ -155,6 +161,8 @@ export default {
         },
         (rect) => {
           this.tar = rect.target
+          this.genRect()
+          this.genScope()
         },
         (rect) => {
           this.tar = rect.target
@@ -311,5 +319,13 @@ body {
 .rect {
   position: absolute;
   background-color: rgba(204, 50, 158, 0.4);
+}
+.function-area {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 400px;
+  height: 100px;
+  background: #aaa;
 }
 </style>
