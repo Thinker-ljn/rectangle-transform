@@ -74,11 +74,17 @@ export function fixed (ctrl: Ctrl, target: Rect, rate: number) {
   }
   function fixHV (h: 'left' | '', v: 'top' | '') {
     const currRate = width / height
-    if (currRate < rate && h) {
-      r[h] = fixH()
+    if (currRate < rate) {
+      const value = fixH()
+      if (h) {
+        r[h] = value
+      }
     }
-    if (currRate > rate && v) {
-      r[v] = fixV()
+    if (currRate > rate) {
+      const value = fixV()
+      if (v) {
+        r[v] = value
+      }
     }
   }
   switch (ctrl) {
