@@ -150,6 +150,9 @@ export default {
       }
     },
     startControl (ev, control) {
+      const before = document.body.style.cursor
+      const cursor = getComputedStyle(ev.target).cursor
+      document.body.style.cursor = cursor
       x(
         ev,
         {
@@ -168,6 +171,7 @@ export default {
           this.tar = rect.target
           this.genRect()
           this.genScope()
+          document.body.style.cursor = before
         },
       )
     },
