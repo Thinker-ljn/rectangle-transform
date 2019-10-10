@@ -21,7 +21,7 @@ export default function listener (
   userMove: UserDefinedHandler | Pointer, // move callback or user def movement
   userFinished?: UserDefinedHandler,
 ) {
-  const {control, target, maximum, minimum, rate} = options
+  const {control, target, maximum = {}, minimum = {}, rate} = options
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
   const scopes = genCtrlScope(control, bbox, maximum, minimum, rate)

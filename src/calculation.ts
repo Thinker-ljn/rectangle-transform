@@ -1,6 +1,6 @@
-import { Ctrl, Rect, ScopeValue, Scope, Bbox, RangeTuple } from './gen-scope'
+import { Ctrl, Rect, Scope, Bbox, RangeTuple } from './gen-scope'
 import { Pointer } from '.'
-import { isNum } from './utils';
+import { isNum } from './utils'
 
 export function getMovement (currEvent: MouseEvent, startEvent: MouseEvent) {
   return {

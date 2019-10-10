@@ -1,4 +1,4 @@
-import { N, getMax, getMin, isNum, getAbs, isDef } from './utils'
+import { N, getMax, getMin, isNum, getAbs, isDef, sub } from './utils'
 
 export interface Size {
   width: number
@@ -15,15 +15,17 @@ export interface Bbox extends Rect {
   bottom: number
 }
 interface BaseRange {
-  start?: number
-  end?: number
+  start: number
+  end: number
 }
+/** 单一轴线范围 */
 export interface SingleRange extends BaseRange {
-  len?: N
+  len: N
 }
+/** 水平垂直复合轴线范围 */
 export interface AxisRange {
-  h: SingleRange
-  v: SingleRange
+  h: Partial<SingleRange>
+  v: Partial<SingleRange>
 }
 export type RangeTuple = [N, N] | undefined
 export type Scope = [RangeTuple, RangeTuple]
@@ -37,8 +39,9 @@ type AxisKey = 'h' | 'v'
 type RangeKey = 'start' | 'end'
 type Factor = -1 | 1
 interface AxisOption {
-  outerAxis: SingleRange
-  innerAxis: SingleRange
+  /** 外部轴线 */
+  outerAxis: Partial<SingleRange>
+  innerAxis: Partial<SingleRange>
   targetAxis: SingleRange
   crossCtrlKeys: [BorderCtrl, BorderCtrl]
   rangeKey: RangeKey
@@ -76,7 +79,7 @@ export default function genCtrlScope (
     return {
       outerAxis: outerRange[axisKey],
       innerAxis: innerRange[axisKey],
-      targetAxis: targetRange[axisKey],
+      targetAxis: targetRange[axisKey] as SingleRange,
       crossCtrlKeys: axisKey === 'h' ? ['t', 'b'] : ['l', 'r'],
       factor: isStartSide ? -1 : 1,
       crossAxisKey: axisKey === 'h' ? 'v' : 'h',
@@ -108,16 +111,12 @@ export default function genCtrlScope (
     let innerLen = innerAxis.len
     if (fixedLen) {
       const [minLen, maxLen] = fixedLen
-      if (maxLen < outerLen && maxLen > innerLen) {
-        outerLen = getMin(outerLen, maxLen)
-      }
-      if (minLen < outerLen && minLen > innerLen) {
-        innerLen = getMax(innerLen, minLen)
-      }
+      outerLen = getMin(outerLen, maxLen)
+      innerLen = getMax(innerLen, minLen)
     }
     // outer
     const outerBorder = outerAxis[rangeKey]
-    const outerLenBorder = targetRelativeBorder + outerLen * factor
+    const outerLenBorder = isNum(outerLen) ? targetRelativeBorder + outerLen * factor : void 0
     const getFinalOuter = isStartSide ? getMax : getMin
     const finalOuterBorder = getFinalOuter(outerBorder, outerLenBorder)
     // inner
@@ -135,21 +134,21 @@ export default function genCtrlScope (
     }
     const {crossCtrlKeys, crossAxisKey} = getMainAxis(control)
     const finalRate = crossAxisKey === 'h' ? 1 / fixedRate : fixedRate
-    let bigLen = void 0
-    let smallLen = void 0
-    if (!isDef(another)) {
+    let bigLen: N = void 0
+    let smallLen: N = void 0
+    if (another === undefined) {
       const [crossStartCtrl, crossEndCtrl] = crossCtrlKeys
-      const startScope = getBorderScope(crossStartCtrl)
-      const endScope = getBorderScope(crossEndCtrl)
+      const startScope = getBorderScope(crossStartCtrl) || []
+      const endScope = getBorderScope(crossEndCtrl) || []
 
       const crossAxis = targetRange[crossAxisKey]
       const smallOuter = getMin(
-        getAbs(crossAxis.end - startScope[0]),
-        getAbs(endScope[1] - crossAxis.start),
+        getAbs(sub(crossAxis.end, startScope[0])),
+        getAbs(sub(endScope[1], crossAxis.start)),
       )
       const bigInner = getMax(
-        getAbs(crossAxis.end - startScope[1]),
-        getAbs(endScope[0] - crossAxis.start),
+        getAbs(sub(crossAxis.end, startScope[1])),
+        getAbs(sub(endScope[0], crossAxis.start)),
       )
       if (isNum(smallOuter)) {
         bigLen = smallOuter * finalRate
@@ -161,9 +160,7 @@ export default function genCtrlScope (
     } else {
       const {oppositeRangeKey, targetAxis, isStartSide} = getMainAxis(another)
       const crossAxis = targetAxis[oppositeRangeKey]
-      // smallLen = getAbs(anotherMinScope - crossAxis
-      // bigLen = getAbs(anotherMaxScope - crossAxis
-      const [another1, another2] = getBorderScope(another)
+      const [another1, another2] = getBorderScope(another) || []
       let anotherMinScope
       let anotherMaxScope
       if (isStartSide) {
@@ -174,12 +171,10 @@ export default function genCtrlScope (
         anotherMaxScope = another2
       }
       if (isNum(anotherMinScope)) {
-        smallLen = getAbs(anotherMinScope - crossAxis) * finalRate
-        // smallLen = getAbs(anotherMinScope * finalRate)
+        smallLen = (getAbs(sub(anotherMinScope, crossAxis)) || 0) * finalRate
       }
       if (isNum(anotherMaxScope)) {
-        bigLen = getAbs(anotherMaxScope - crossAxis) * finalRate
-        // bigLen = getAbs(anotherMaxScope * finalRate)
+        bigLen = (getAbs(sub(anotherMaxScope, crossAxis)) || 0) * finalRate
       }
     }
     return [smallLen, bigLen]
@@ -196,9 +191,10 @@ export default function genCtrlScope (
     const outer = outerRange[key]
     const inner = innerRange[key]
     const {len: targetlen} = targetRange[key]
+
     return [
-      getMax(outer.start, inner.end - targetlen),
-      getMin(inner.start, outer.end - targetlen),
+      getMax(outer.start, sub(inner.end, targetlen)),
+      getMin(inner.start, sub(outer.end, targetlen)),
     ]
   }
   let scopeH: RangeTuple = void 0

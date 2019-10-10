@@ -1,5 +1,5 @@
 export type N = undefined | null | number
-export function isNum (n: N) {
+export function isNum (n: N): n is number {
   return typeof n === 'number' && !isNaN(n)
 }
 
@@ -28,4 +28,8 @@ export function getAbs (value: any) {
     return Math.abs(value)
   }
   return void 0
+}
+
+export function sub (n1: N, n2: N) {
+  return isNum(n1) && isNum(n2) ? n1 - n2 : void 0
 }
