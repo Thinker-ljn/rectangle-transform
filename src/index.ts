@@ -6,7 +6,7 @@ export interface Pointer {
   x: number
   y: number
 }
-interface Options {
+export interface Options {
   control: Ctrl
   target: Rect
   maximum?: Partial<Bbox>
