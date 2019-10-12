@@ -36,10 +36,10 @@ export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope:
     } else {
       const [min, max] = range
       let value = offsetValue + initValue
-      if (min) {
+      if (isNum(min)) {
         value = Math.max(min, value)
       }
-      if (max) {
+      if (isNum(max)) {
         value = Math.min(max, value)
       }
       return value
