@@ -124,3 +124,37 @@ export function genBbox (target: Rect) {
   const bottom = top + height
   return { x: left, y: top, left, top, right, bottom, width, height }
 }
+
+
+export function toProportion (ctrl: Ctrl, target: Rect, step: number) {
+  const keys = Object.keys(target) as Array<keyof Rect>
+  const proportion = keys.reduce((currProportion, key) => {
+    currProportion[key] = target[key] / step
+    return currProportion
+  }, {} as Rect)
+  const fixedMinSide = (min: number, len: number) => {
+    const re = Math.floor(min)
+    const dx = min - re
+    len = Math.round(len + dx)
+    min = re
+    return {min, len}
+  }
+  const {left, width, top, height} = proportion
+  if (ctrl.indexOf('l') > -1) {
+    const {min, len} = fixedMinSide(left, width)
+    proportion.left = min
+    proportion.width = len
+  } else {
+    proportion.left = Math.round(left)
+    proportion.width = Math.round(width)
+  }
+  if (ctrl.indexOf('t') > -1) {
+    const {min, len} = fixedMinSide(top, height)
+    proportion.top = min
+    proportion.height = len
+  } else {
+    proportion.top = Math.round(top)
+    proportion.height = Math.round(height)
+  }
+  return proportion
+}

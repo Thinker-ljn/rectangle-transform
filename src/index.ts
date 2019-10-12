@@ -1,7 +1,12 @@
 import genCtrlScope, { Ctrl, Rect, Bbox } from './gen-scope'
-import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fixed } from './calculation'
+import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fixed, toProportion } from './calculation'
 
-type UserDefinedHandler = ({target: Rect, ev: MouseEvent}) => void | Rect
+interface UserDefinedHandlerParams {
+  target: Rect,
+  porportion: Rect,
+  ev: MouseEvent
+}
+type UserDefinedHandler = (params: UserDefinedHandlerParams) => void | Rect
 export interface Pointer {
   x: number
   y: number
@@ -21,7 +26,9 @@ export default function listener (
   userMove: UserDefinedHandler | Pointer, // move callback or user def movement
   userFinished?: UserDefinedHandler,
 ) {
-  const {control, target, maximum = {}, minimum = {}, rate} = options
+  const {
+    control, target, maximum = {}, minimum = {}, rate, step,
+  } = options
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
   const scopes = genCtrlScope(control, bbox, maximum, minimum, rate)
@@ -35,14 +42,15 @@ export default function listener (
     if (rate) {
       newTarget = fixed(control, newTarget, rate)
     }
-    return newTarget
+    const porportion = step && step > 1 ? toProportion(control, newTarget, step) : newTarget
+    return {target: newTarget, porportion}
   }
 
   function whenMove (ev: MouseEvent) {
     ev.preventDefault()
     if (typeof userMove === 'function') {
       const newTarget = getNewTarget(ev)
-      userMove({target: newTarget, ev})
+      userMove({...newTarget, ev})
     }
   }
   function whenFinished (ev: MouseEvent) {
@@ -51,7 +59,7 @@ export default function listener (
     clearSelection()
     if (userFinished) {
       const newTarget = getNewTarget(ev)
-      userFinished({target: newTarget, ev})
+      userFinished({...newTarget, ev})
     }
   }
 
