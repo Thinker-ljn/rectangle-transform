@@ -3,7 +3,9 @@ import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fi
 
 interface UserDefinedHandlerParams {
   target: Rect,
-  porportion: Rect,
+  rawTarget?: Rect,
+  porportion?: Rect,
+  stepTarget?: Rect,
   ev: MouseEvent
 }
 type UserDefinedHandler = (params: UserDefinedHandlerParams) => void | Rect
@@ -16,7 +18,7 @@ export interface Options {
   target: Rect
   maximum?: Partial<Bbox>
   minimum?: Partial<Bbox>
-  step?: number
+  step?: number | [number, number]
   rate?: number
 }
 
@@ -32,7 +34,7 @@ export default function listener (
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
   const scopes = genCtrlScope(control, bbox, maximum, minimum, rate)
-  function getNewTarget (ev: MouseEvent | Pointer) {
+  function getNewTarget (ev: MouseEvent | Pointer, isFinish?: boolean) {
     let movement = ev
     if (ev instanceof MouseEvent) {
       movement = getMovement(ev, startEvent)
@@ -42,8 +44,11 @@ export default function listener (
     if (rate) {
       newTarget = fixed(control, newTarget, rate)
     }
-    const porportion = step && step > 1 ? toProportion(control, newTarget, step) : newTarget
-    return {target: newTarget, porportion}
+    if (step) {
+      const {proportion, stepTarget} = toProportion(control, newTarget, step)
+      return {target: isFinish ? stepTarget : newTarget, proportion, stepTarget, rawTarget: newTarget}
+    }
+    return {target: newTarget}
   }
 
   function whenMove (ev: MouseEvent) {
@@ -58,7 +63,7 @@ export default function listener (
     removeListener()
     clearSelection()
     if (userFinished) {
-      const newTarget = getNewTarget(ev)
+      const newTarget = getNewTarget(ev, true)
       userFinished({...newTarget, ev})
     }
   }

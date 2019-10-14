@@ -126,12 +126,14 @@ export function genBbox (target: Rect) {
 }
 
 
-export function toProportion (ctrl: Ctrl, target: Rect, step: number) {
-  const keys = Object.keys(target) as Array<keyof Rect>
-  const proportion = keys.reduce((currProportion, key) => {
-    currProportion[key] = target[key] / step
-    return currProportion
-  }, {} as Rect)
+export function toProportion (ctrl: Ctrl, target: Rect, step: number | [number, number]) {
+  const [hStep, vStep] = typeof step === 'number' ? [step, step] : step
+  const proportion =  {
+    left: target.left / hStep,
+    width: target.width / hStep,
+    top: target.top / vStep,
+    height: target.height / vStep,
+  }
   const fixedMinSide = (min: number, len: number) => {
     const re = Math.floor(min)
     const dx = min - re
@@ -156,5 +158,11 @@ export function toProportion (ctrl: Ctrl, target: Rect, step: number) {
     proportion.top = Math.round(top)
     proportion.height = Math.round(height)
   }
-  return proportion
+  const stepTarget =  {
+    left: proportion.left * hStep,
+    width: proportion.width * hStep,
+    top: proportion.top * vStep,
+    height: proportion.height * vStep,
+  }
+  return {proportion, stepTarget}
 }
