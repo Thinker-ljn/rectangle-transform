@@ -8,9 +8,6 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    // library: 'TranslateListener',
-    // libraryExport: 'default',
-    // libraryTarget: 'umd'
   },
   module: {
     rules: [
