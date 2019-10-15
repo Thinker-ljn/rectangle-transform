@@ -1,7 +1,7 @@
 {
-  "name": "rectangle-translate",
+  "name": "rectangle-transform",
   "version": "0.1.0",
-  "main": "dist/rectangle-translate.js",
+  "main": "dist/rectangle-transform.js",
   "author": "Thinker-ljn",
   "license": "MIT",
   "scripts": {

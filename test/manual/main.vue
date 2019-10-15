@@ -2,7 +2,7 @@
 <template>
   <div class="manual-test-container">
     <div class="header">
-      <span>RECTANGLE-TRANSLATE</span>
+      <span>RECTANGLE-Transform</span>
     </div>
     <div class="body">
       <div class="sider"></div>

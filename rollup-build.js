@@ -10,9 +10,9 @@ rollup.rollup({
   ]
 }).then(bundle => {
   return bundle.write({
-    file: './dist/rectangle-translate.js',
+    file: './dist/rectangle-transform.js',
     format: 'iife',
-    name: 'RectangleTranslate',
+    name: 'RectangleTransform',
     sourcemap: true
   });
 });
