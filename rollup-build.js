@@ -13,6 +13,7 @@ rollup.rollup({
     file: './dist/rectangle-transform.js',
     format: 'iife',
     name: 'RectangleTransform',
+    exports: 'named',
     sourcemap: true
   });
 });
