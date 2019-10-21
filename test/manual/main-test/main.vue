@@ -5,7 +5,7 @@
       <div class="maximum-border" :style="maxPos" v-show="effects.max"> </div>
       <div class="minimum-border" :style="minPos" v-show="effects.min"> </div>
       <div class="target" :style="tarPos"> </div>
-      <div class="drag-region" :style="tarPos" @mousedown.stop="startControl($event, 'xy')">
+      <div class="drag-region" :style="tarPos" @mousedown.stop="startControl($event, 'xy')" @mousewheel="mousewheel">
         <div :class="c" v-for="c in ctrls" @mousedown.stop="startControl($event, c)"></div>
       </div>
     </div>
@@ -28,12 +28,16 @@
         <r-input label="水平" v-model="step.h"></r-input>
         <r-input label="垂直" v-model="step.v"></r-input>
       </div>
+      <div class="step">
+        <h4>缩放 <input type="checkbox" v-model="effects.scale"></h4>
+        <r-input label="scale" v-model="scale.value"></r-input>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import x from '@/index.ts'
+import x, {scale} from '@/index.ts'
 import c from '@/gen-scope.ts'
 import RInput from './reactive-input.vue'
 export default {
@@ -42,14 +46,18 @@ export default {
   },
   data () {
     return {
-      size: { w: 0, h: 0, w2: 0, h2: 0, },
+      size: { w: 0, h: 0, w2: 0, h2: 0, rect: null},
       max: { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0, },
       min: { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0, },
       tar: { left: 0, right: 0, width: 0, height: 0, },
       ctrls: ['l', 'lt', 't', 'rt', 'r', 'rb', 'b', 'lb'],
-      effects: { max: true, min: true, step: true, rate: false },
+      effects: { max: true, min: true, step: false, rate: false, scale: true },
       step: { h: 50, v: 50, },
       rate: { w: 1, h: 1, },
+      scale: {
+        value: 1,
+        init: null
+      }
     }
   },
   computed: {
@@ -88,11 +96,12 @@ export default {
   methods: {
     init () {
       const {clientWidth: w, clientHeight: h} = this.$refs.test
+      const rect = this.$refs.test.getBoundingClientRect()
       const w2 = w / 2
       const h2 = h / 2      
       const w10 = w / 5
       const h10 = h / 5
-      this.size = {w, h, w2, h2}
+      this.size = {w, h, w2, h2, rect}
       this.max = { left: -w2, right: w2, top: -h2, bottom: h2, width: w, height: h2 }
       this.min = { left: -w10, right: w10, top: -h10, bottom: h10, width: w10, height: h10 }
       this.tar = { left: -w10, top: -h10, width: w2, height: h2 }
@@ -162,6 +171,28 @@ export default {
         },
       )
     },
+
+    getPointer (ev) {
+      const {x, y} = this.size.rect
+      const {w2, h2} = this.size
+      const {clientX, clientY} = ev
+      return {
+        x: clientX - x - w2,
+        y: clientY - y - h2,
+      }
+    },
+
+    mousewheel (ev) {
+      const delta = ev.wheelDelta / 1200
+      const curr = this.scale.value + delta
+      const factor = curr / this.scale.value
+      this.scale.value = curr
+      if (this.scale.init === null) {
+        this.scale.init = this.tar
+      }
+      const pointer = this.getPointer(ev)
+      this.tar = scale(this.tar, factor, pointer)
+    }
   }
 }
 </script>
@@ -172,6 +203,7 @@ export default {
   width: 100%;
   height: 100%;
   background-color: #eee;
+  overflow: hidden;
 }
 .test-area {
   margin: 10px;

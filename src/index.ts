@@ -93,3 +93,15 @@ export default function listener (
     return newTarget
   }
 }
+
+export function scale (target: Rect, factor: number, origin: Pointer) {
+  const {width, height, left, top} = target
+  const {x, y} = origin
+
+  return {
+    left: x - (x - left) * factor,
+    top: y - (y - top) * factor,
+    width: width * factor,
+    height: height * factor,
+  }
+}

@@ -27,6 +27,7 @@ export function genInitPositon (ctrl: Ctrl, target: Rect): Partial<Pointer> {
     case 'xy': return {x, y}
     case 'y': return {y}
   }
+  return {x, y}
 }
 
 export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope: Scope) {
@@ -116,6 +117,7 @@ export function genNewTarget (ctrl: Ctrl, position: Partial<Pointer>, target: Bb
     case 'xy': return {left: x, top: y, width, height}
     case 'y':  return {left, top: y, width, height}
   }
+  return target
 }
 
 export function genBbox (target: Rect) {
