@@ -1,6 +1,6 @@
 const rollup = require('rollup');
 const { terser } = require('rollup-plugin-terser');
-const rollupTypescript = require('rollup-plugin-typescript');
+const rollupTypescript = require('rollup-plugin-typescript2');
 
 rollup.rollup({
   input: './src/index.ts',
@@ -10,7 +10,7 @@ rollup.rollup({
   ]
 }).then(bundle => {
   return bundle.write({
-    file: './dist/rectangle-transform.js',
+    file: './lib/rectangle-transform.js',
     format: 'iife',
     name: 'RectangleTransform',
     exports: 'named',

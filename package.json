@@ -1,7 +1,7 @@
 {
   "name": "rectangle-transform",
   "version": "0.1.0",
-  "main": "dist/rectangle-transform.js",
+  "main": "lib/rectangle-transform.js",
   "author": "Thinker-ljn",
   "license": "MIT",
   "scripts": {
@@ -10,10 +10,11 @@
     "build": "node ./rollup-build.js"
   },
   "files": [
-    "dist",
+    "lib",
     "src",
     "*.json"
   ],
+  "types": "./lib/src/index.d.ts",
   "devDependencies": {
     "@types/jest": "^24.0.18",
     "awesome-typescript-loader": "^5.2.1",
@@ -24,7 +25,7 @@
     "jest": "^24.9.0",
     "rollup": "^1.23.1",
     "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-typescript": "^1.0.1",
+    "rollup-plugin-typescript2": "^0.24.3",
     "style-loader": "^1.0.0",
     "ts-jest": "^24.0.2",
     "tslib": "^1.10.0",
