@@ -25,13 +25,16 @@ export interface Options {
 export default function listener (
   startEvent: MouseEvent | Pointer, // startEvent or user def movement,
   options: Options,
-  userMove: UserDefinedHandler | Pointer, // move callback or user def movement, will remove...
+  userMove?: UserDefinedHandler | Pointer, // move callback or user def movement, will remove...
   userFinished?: UserDefinedHandler,
 ) {
   if (!(startEvent instanceof MouseEvent)) {
     const movement = startEvent
     const newTarget = getNewTarget(movement)
     return newTarget
+  }
+  if (!userMove) {
+    return new Error('请传入 userMove 参数！')
   }
   const {
     control, target, maximum = {}, minimum = {}, rate, step,
