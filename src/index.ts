@@ -23,20 +23,26 @@ export interface Options {
 }
 
 export default function listener (
-  startEvent: MouseEvent,
+  startEvent: MouseEvent | Pointer, // startEvent or user def movement,
   options: Options,
-  userMove: UserDefinedHandler | Pointer, // move callback or user def movement
+  userMove: UserDefinedHandler | Pointer, // move callback or user def movement, will remove...
   userFinished?: UserDefinedHandler,
 ) {
+  if (!(startEvent instanceof MouseEvent)) {
+    const movement = startEvent
+    const newTarget = getNewTarget(movement)
+    return newTarget
+  }
   const {
     control, target, maximum = {}, minimum = {}, rate, step,
   } = options
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
   const scopes = genCtrlScope(control, bbox, maximum, minimum, rate)
+
   function getNewTarget (ev: MouseEvent | Pointer, isFinish?: boolean) {
     let movement = ev
-    if (ev instanceof MouseEvent) {
+    if (ev instanceof MouseEvent && startEvent instanceof MouseEvent) {
       movement = getMovement(ev, startEvent)
     }
     const newPosition = calcNewPosition(movement, position, scopes)
@@ -87,6 +93,7 @@ export default function listener (
 
   if (typeof userMove === 'function') {
     addListener()
+    return {target}
   } else {
     const movement = userMove
     const newTarget = getNewTarget(movement)
