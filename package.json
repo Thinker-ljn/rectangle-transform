@@ -1,6 +1,6 @@
 {
   "name": "rectangle-transform",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "main": "lib/rectangle-transform.js",
   "author": "Thinker-ljn",
   "license": "MIT",
