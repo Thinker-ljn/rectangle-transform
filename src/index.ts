@@ -34,7 +34,7 @@ export default function listener (
     return newTarget
   }
   if (!userMove) {
-    return new Error('请传入 userMove 参数！')
+    throw new Error('请传入 userMove 参数！')
   }
   const {
     control, target, maximum = {}, minimum = {}, rate, step,
