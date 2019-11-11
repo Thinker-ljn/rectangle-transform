@@ -22,26 +22,29 @@ export interface Options {
   rate?: number
 }
 
-export default function listener (
+export default function RTListener (
   startEvent: MouseEvent | Pointer, // startEvent or user def movement,
   options: Options,
-  userMove?: UserDefinedHandler | Pointer, // move callback or user def movement, will remove...
+  userMove?: UserDefinedHandler,
   userFinished?: UserDefinedHandler,
 ) {
-  if (!(startEvent instanceof MouseEvent)) {
-    const movement = startEvent
-    const newTarget = getNewTarget(movement)
-    return newTarget
-  }
-  if (!userMove) {
+  const isSimpleMode = !(startEvent instanceof MouseEvent)
+  if (!isSimpleMode && !userMove) {
     throw new Error('请传入 userMove 参数！')
   }
+
   const {
     control, target, maximum = {}, minimum = {}, rate, step,
   } = options
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
   const scopes = genCtrlScope(control, bbox, maximum, minimum, rate)
+
+  if (isSimpleMode) {
+    const movement = startEvent
+    const newTarget = getNewTarget(movement)
+    return newTarget
+  }
 
   function getNewTarget (ev: MouseEvent | Pointer, isFinish?: boolean) {
     let movement = ev
@@ -94,14 +97,7 @@ export default function listener (
     document.removeEventListener('mouseup', whenFinished)
   }
 
-  if (typeof userMove === 'function') {
-    addListener()
-    return {target}
-  } else {
-    const movement = userMove
-    const newTarget = getNewTarget(movement)
-    return newTarget
-  }
+  addListener()
 }
 
 export function scale (target: Rect, factor: number, origin: Pointer) {
