@@ -98,6 +98,7 @@ export default function RTListener (
   }
 
   addListener()
+  return {target}
 }
 
 export function scale (target: Rect, factor: number, origin: Pointer) {
