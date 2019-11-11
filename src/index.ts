@@ -4,7 +4,7 @@ import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fi
 interface UserDefinedHandlerParams {
   target: Rect,
   rawTarget?: Rect,
-  porportion?: Rect,
+  proportion?: Rect,
   stepTarget?: Rect,
   ev: MouseEvent
 }

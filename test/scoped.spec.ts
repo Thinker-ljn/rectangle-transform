@@ -26,7 +26,7 @@ describe('controll x,y scope', () => {
   })
 })
 
-describe.only('controll l scope', () => {
+describe('controll l scope', () => {
   it('empty', () => {
     expect(genCtrlScope(
       'l',
