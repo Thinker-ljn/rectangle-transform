@@ -1,32 +1,33 @@
-import genCtrlScope, { Ctrl, Rect, Bbox } from './gen-scope'
+import genCtrlScope, { RTCtrl, RTRect, RTBbox, RTPointer } from './gen-scope'
 import { genInitPositon, getMovement, calcNewPosition, genBbox, genNewTarget, fixed, toProportion } from './calculation'
 
-interface UserDefinedHandlerParams {
-  target: Rect,
-  rawTarget?: Rect,
-  proportion?: Rect,
-  stepTarget?: Rect,
+export interface RTUserDefinedHandlerParams {
+  target: RTRect,
+  rawTarget?: RTRect,
+  proportion?: RTRect,
+  stepTarget?: RTRect,
   ev: MouseEvent
 }
-type UserDefinedHandler = (params: UserDefinedHandlerParams) => void | Rect
-export interface Pointer {
-  x: number
-  y: number
+export type RTUserDefinedHandler = (params: RTUserDefinedHandlerParams) => void | RTRect
+export {
+  RTCtrl,
+  RTBbox,
+  RTRect,
 }
-export interface Options {
-  control: Ctrl
-  target: Rect
-  maximum?: Partial<Bbox>
-  minimum?: Partial<Bbox>
+export interface RTOptions {
+  control: RTCtrl
+  target: RTRect
+  maximum?: Partial<RTBbox>
+  minimum?: Partial<RTBbox>
   step?: number | [number, number]
   rate?: number
 }
 
 export default function RTListener (
-  startEvent: MouseEvent | Pointer, // startEvent or user def movement,
-  options: Options,
-  userMove?: UserDefinedHandler,
-  userFinished?: UserDefinedHandler,
+  startEvent: MouseEvent | RTPointer, // startEvent or user def movement,
+  options: RTOptions,
+  userMove?: RTUserDefinedHandler,
+  userFinished?: RTUserDefinedHandler,
 ) {
   const isSimpleMode = !(startEvent instanceof MouseEvent)
   if (!isSimpleMode && !userMove) {
@@ -46,7 +47,7 @@ export default function RTListener (
     return newTarget
   }
 
-  function getNewTarget (ev: MouseEvent | Pointer, isFinish?: boolean) {
+  function getNewTarget (ev: MouseEvent | RTPointer, isFinish?: boolean) {
     let movement = ev
     if (ev instanceof MouseEvent && startEvent instanceof MouseEvent) {
       movement = getMovement(ev, startEvent)
@@ -101,7 +102,7 @@ export default function RTListener (
   return {target}
 }
 
-export function scale (target: Rect, factor: number, origin: Pointer) {
+export function scale (target: RTRect, factor: number, origin: RTPointer) {
   const {width, height, left, top} = target
   const {x, y} = origin
 

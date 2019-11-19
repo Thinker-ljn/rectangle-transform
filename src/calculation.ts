@@ -1,5 +1,5 @@
-import { Ctrl, Rect, Scope, Bbox, RangeTuple } from './gen-scope'
-import { Pointer } from '.'
+import { RTCtrl, RTRect, RTScope, RTBbox, RTRangeTuple } from './gen-scope'
+import { RTPointer } from './gen-scope'
 import { isNum } from './utils'
 
 export function getMovement (currEvent: MouseEvent, startEvent: MouseEvent) {
@@ -9,7 +9,7 @@ export function getMovement (currEvent: MouseEvent, startEvent: MouseEvent) {
   }
 }
 
-export function genInitPositon (ctrl: Ctrl, target: Rect): Partial<Pointer> {
+export function genInitPositon (ctrl: RTCtrl, target: RTRect): Partial<RTPointer> {
   const {left: x, top: y, width: w, height: h} = target
   const r = x + w
   const b = y + h
@@ -30,8 +30,8 @@ export function genInitPositon (ctrl: Ctrl, target: Rect): Partial<Pointer> {
   return {x, y}
 }
 
-export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope: Scope) {
-  function inScope (offsetValue: number, initValue: number, range: RangeTuple) {
+export function calcNewPosition (offset: RTPointer, init: Partial<RTPointer>, scope: RTScope) {
+  function inScope (offsetValue: number, initValue: number, range: RTRangeTuple) {
     if (!range) {
       return initValue + offsetValue
     } else {
@@ -50,7 +50,7 @@ export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope:
   const {x: ix, y: iy} = init
   const [sx, sy] = scope
 
-  const result: Partial<Pointer> = {}
+  const result: Partial<RTPointer> = {}
   if (sx && isNum(ix)) {
     result.x = inScope(ox, ix, sx)
   }
@@ -60,7 +60,7 @@ export function calcNewPosition (offset: Pointer, init: Partial<Pointer>, scope:
   return result
 }
 // rate = w / h
-export function fixed (ctrl: Ctrl, target: Rect, rate: number) {
+export function fixed (ctrl: RTCtrl, target: RTRect, rate: number) {
   const {left, top, width, height} = target
   const r = {...target}
   function fixV (share = false) {
@@ -101,7 +101,7 @@ export function fixed (ctrl: Ctrl, target: Rect, rate: number) {
   return r
 }
 
-export function genNewTarget (ctrl: Ctrl, position: Partial<Pointer>, target: Bbox): Rect {
+export function genNewTarget (ctrl: RTCtrl, position: Partial<RTPointer>, target: RTBbox): RTRect {
   const {x, y} = {x: 0, y: 0, ...position}
   const {left, top, width, height, right, bottom} = target
   switch (ctrl) {
@@ -120,7 +120,7 @@ export function genNewTarget (ctrl: Ctrl, position: Partial<Pointer>, target: Bb
   return target
 }
 
-export function genBbox (target: Rect) {
+export function genBbox (target: RTRect) {
   const {left, top, width, height} = target
   const right = left + width
   const bottom = top + height
@@ -128,7 +128,7 @@ export function genBbox (target: Rect) {
 }
 
 
-export function toProportion (ctrl: Ctrl, target: Rect, step: number | [number, number]) {
+export function toProportion (ctrl: RTCtrl, target: RTRect, step: number | [number, number]) {
   const [hStep, vStep] = typeof step === 'number' ? [step, step] : step
   const proportion =  {
     left: target.left / hStep,
