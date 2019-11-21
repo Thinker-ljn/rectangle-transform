@@ -120,3 +120,8 @@ export function scale (target: RTRect, factor: number, origin: RTPointer) {
     height: height * factor,
   }
 }
+
+export function RTScale (target: RTRect, factor: number, origin: RTPointer) {
+  return scale(target, factor, origin)
+}
+
