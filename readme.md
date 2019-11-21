@@ -100,5 +100,10 @@ interface RTResult {
     rawTarget?: RTRect;
 }
 
-function RTListener(startEvent: MouseEvent | RTPointer, options: RTOptions, userMove?: RTUserDefinedHandler, userFinished?: RTUserDefinedHandler): RTResult;
+function RTListener(
+  startEvent: MouseEvent | RTPointer,
+  options: RTOptions,
+  userMove?: RTUserDefinedHandler,
+  userFinished?: RTUserDefinedHandler
+): RTResult;
 ```
