@@ -23,6 +23,13 @@ export interface RTOptions {
   rate?: number
 }
 
+export interface RTResult {
+  target: RTRect
+  proportion?: RTRect
+  stepTarget?: RTRect
+  rawTarget?: RTRect
+}
+
 export default function RTListener (
   startEvent: MouseEvent | RTPointer, // startEvent or user def movement,
   options: RTOptions,
@@ -47,7 +54,7 @@ export default function RTListener (
     return newTarget
   }
 
-  function getNewTarget (ev: MouseEvent | RTPointer, isFinish?: boolean) {
+  function getNewTarget (ev: MouseEvent | RTPointer, isFinish?: boolean): RTResult {
     let movement = ev
     if (ev instanceof MouseEvent && startEvent instanceof MouseEvent) {
       movement = getMovement(ev, startEvent)

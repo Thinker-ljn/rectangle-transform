@@ -128,7 +128,9 @@ export function genBbox (target: RTRect) {
 }
 
 
-export function toProportion (ctrl: RTCtrl, target: RTRect, step: number | [number, number]) {
+export function toProportion (
+  ctrl: RTCtrl, target: RTRect, step: number | [number, number],
+): {proportion: RTRect, stepTarget: RTRect} {
   const [hStep, vStep] = typeof step === 'number' ? [step, step] : step
   const proportion =  {
     left: target.left / hStep,
