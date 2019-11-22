@@ -110,6 +110,12 @@ export default function RTListener (
 }
 
 export function scale (target: RTRect, factor: number, origin: RTPointer) {
+  // tslint:disable-next-line: no-console
+  console.warn('Method scale will be removed, using method RTScale instead')
+  return RTScale(target, factor, origin)
+}
+
+export function RTScale (target: RTRect, factor: number, origin: RTPointer) {
   const {width, height, left, top} = target
   const {x, y} = origin
 
@@ -119,9 +125,5 @@ export function scale (target: RTRect, factor: number, origin: RTPointer) {
     width: width * factor,
     height: height * factor,
   }
-}
-
-export function RTScale (target: RTRect, factor: number, origin: RTPointer) {
-  return scale(target, factor, origin)
 }
 
