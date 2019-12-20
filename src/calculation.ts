@@ -116,8 +116,9 @@ export function genNewTarget (ctrl: RTCtrl, position: Partial<RTPointer>, target
     case 'x':  return {left: x, top, width, height}
     case 'xy': return {left: x, top: y, width, height}
     case 'y':  return {left, top: y, width, height}
+    default:
+      throw new Error('Unexpected ctrl value: ' + ctrl as never)
   }
-  return target
 }
 
 export function genBbox (target: RTRect) {
