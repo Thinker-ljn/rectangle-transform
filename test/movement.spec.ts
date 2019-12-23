@@ -1,6 +1,6 @@
 import RectTrans from '../src/index'
 
-describe.only('test movement', () => {
+describe.skip('test movement', () => {
   it('with rate', () => {
     const {target} = RectTrans(
       {x: 100, y: 100},

@@ -5,8 +5,8 @@
   "author": "Thinker-ljn",
   "license": "MIT",
   "scripts": {
-    "dev": "webpack",
-    "start": "webpack-dev-server --open",
+    "test": "yarn jest",
+    "dev": "webpack-dev-server --open",
     "build": "node ./rollup-build.js"
   },
   "files": [
