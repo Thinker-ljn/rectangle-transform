@@ -32,6 +32,9 @@
         <h4>缩放 <input type="checkbox" v-model="effects.scale"></h4>
         <r-input label="scale" v-model="scale.value"></r-input>
       </div>
+      <div class="frame">
+        <h4>帧刷新 <input type="checkbox" v-model="effects.frame"></h4>
+      </div>
     </div>
   </div>
 </template>
@@ -51,7 +54,7 @@ export default {
       min: { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0, },
       tar: { left: 0, right: 0, width: 0, height: 0, },
       ctrls: ['l', 'lt', 't', 'rt', 'r', 'rb', 'b', 'lb'],
-      effects: { max: true, min: true, step: false, rate: false, scale: true },
+      effects: { max: true, min: true, step: false, rate: false, scale: true, frame: false },
       step: { h: 50, v: 50, },
       rate: { w: 1, h: 1, },
       scale: {
@@ -135,7 +138,7 @@ export default {
 
     getOptions () {
       const options = {}
-      const {max, min, rate, step} = this.effects
+      const {max, min, rate, step, frame} = this.effects
       if (max) {
         options.maximum = this.max
       }
@@ -147,6 +150,9 @@ export default {
       }
       if (step) {
         options.step = [this.step.h, this.step.v]
+      }
+      if (frame) {
+        options.animationFrameUpdate = true
       }
       return options
     },
@@ -235,6 +241,7 @@ export default {
   height: 100%;
   float: right;
   background-color: #ccc;
+  overflow: auto;
 }
 .maximum-border {
   position: absolute;

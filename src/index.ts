@@ -21,6 +21,7 @@ export interface RTOptions {
   minimum?: Partial<RTBbox>
   step?: number | [number, number]
   rate?: number
+  animationFrameUpdate?: boolean
 }
 
 export interface RTResult {
@@ -43,6 +44,7 @@ export default function RTListener (
 
   const {
     control, target, maximum = {}, minimum = {}, rate, step,
+    animationFrameUpdate,
   } = options
   const bbox = genBbox(target)
   const position = genInitPositon(control, target)
@@ -53,6 +55,9 @@ export default function RTListener (
     const newTarget = getNewTarget(movement)
     return newTarget
   }
+
+  let currStatus: RTUserDefinedHandlerParams | null = null
+  let dragging: boolean = true
 
   function getNewTarget (ev: MouseEvent | RTPointer, isFinish?: boolean): RTResult {
     let movement = ev
@@ -70,18 +75,31 @@ export default function RTListener (
     }
     return {target: newTarget}
   }
-
+  function runUpdate () {
+    requestAnimationFrame(function doUpdate () {
+      if (currStatus && typeof userMove === 'function') {
+        userMove(currStatus)
+      }
+      if (dragging) {
+        // 继续下一帧
+        requestAnimationFrame(doUpdate)
+      }
+    })
+  }
   function whenMove (ev: MouseEvent) {
     ev.preventDefault()
-    if (typeof userMove === 'function') {
-      const newTarget = getNewTarget(ev)
+    const newTarget = getNewTarget(ev)
+    if (!animationFrameUpdate && typeof userMove === 'function') {
       userMove({...newTarget, ev})
+    } else {
+      currStatus = {...newTarget, ev}
     }
   }
   function whenFinished (ev: MouseEvent) {
     ev.preventDefault()
     removeListener()
     clearSelection()
+    dragging = false
     if (userFinished) {
       const newTarget = getNewTarget(ev, true)
       userFinished({...newTarget, ev})
@@ -106,6 +124,9 @@ export default function RTListener (
   }
 
   addListener()
+  if (animationFrameUpdate) {
+    runUpdate()
+  }
   return {target}
 }
 
