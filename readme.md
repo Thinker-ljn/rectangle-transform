@@ -80,6 +80,7 @@ interface RTUserDefinedHandlerParams {
   stepTarget?: RTRect; // 根据步长来生成新的矩形
   rawTarget?: RTRect; // 转化前的新目标矩形
   proportion?: RTRect; // 比例
+  animationFrameUpdate?: boolean // 设置为 true 可以让 move 事件在每个 requestAnimationFrame 的回调下更新
 }
 // onmousemove, onmouseup 的回调函数
 type RTUserDefinedHandler = (params: RTUserDefinedHandlerParams) => void | RTRect;
